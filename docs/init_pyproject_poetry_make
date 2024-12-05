@@ -1,0 +1,69 @@
+.ONESHELL:
+.SHELLFLAGS += -e
+
+## with .ONESHELL: the lines in the recipe will be passed to a single invocation of the shell. instead of && \ at the end of each statement line within a target section. Use $$ instead of ; to chain the commands.
+
+# put this file in you developemnt folder (parent of your project directory), execute the following command, after replacing "demo-project" with your desired project name. 
+# make --file=init_pyproject_poetry_make projectname="demo-project" init-project
+
+# afterwards you may cd project-name, and start to add dependencies.
+
+# in shell predefine the project-name variable or pass as argument as
+# notice the variable name with hyphen or underscore
+# make project-name="demo-project" init-project # YES, preferree
+# make project_name="demo-project" init-project # YES, name need to be updated
+# project-name="demo-project" make init-project # NO
+# project_name="demo-project" make init-project	# YES, name need to be updated
+
+PROJECTNAME := $(projectname) 
+USERNAME := $(shell whoami)
+PWD := $(shell pwd)
+
+# USERNAME != whoami # shell assignment using != works in Ubuntu bash
+##################
+## Setup ##
+##################
+
+.PHONY: check-poetry
+check-poetry:
+ifeq ($(shell which poetry), )
+	$(error "Can't find poetry on the PATH. Please run 'make install-poetry' or update PATH")
+else
+	@poetry --version
+	@echo $(USERNAME) is initiating the $(PROJECTNAME) project in $(PWD).
+endif
+
+
+.PHONY: install-poetry
+install-poetry:
+	@curl -sSL https://install.python-poetry.org | python3 -
+
+.PHONY: init-project
+init-project:  check-poetry
+## create and cd the project directory -- parent dir.
+	@mkdir $(PROJECTNAME)
+	@chmod -R 777 $(PROJECTNAME)   ## essential for macOS
+	@cd $(PROJECTNAME)
+
+## now initiate the repository/package with poetry
+	@poetry new $(PROJECTNAME) --src --name $(PROJECTNAME)
+
+# create the commom dir and files. The -p option (parent) allow you to create a directory hierarchy in one step. '.github/workflows/' for YAML (.yml) config files
+	@mkdir -p notebooks data/input data/.images .github/workflows
+	@touch README.md LICENSE.txt .CHANGELOG.md
+	@mkdir docs && cp ../init_pyproject_poetry_make docs/
+
+# initiate gitignore file
+	@cd $(PROJECTNAME)
+	@touch ../.gitignore
+	@echo ${PROJECTNAME}/poetry.lock | tr -d ' ' >> ../.gitignore
+	@echo $(PROJECTNAME)/poetry.toml | tr -d ' ' >> ../.gitignore
+	@echo ".CHANGELOG.md\nnotebooks/\ndata/" >> ../.gitignore
+# echo "$string" | tr -d '[:space:]'  removes all white spaces
+	@echo .venv >> ../.gitignore
+
+# poetry config need to be executed in the project repository directory. poetry will still search ~/${USERNAME}/.cache/pypoetry/virtualenvs for a existing venv pertaining to this project. Only if not found it will create one in /${PROJECTNAME}/${PROJECTNAME}/.venv
+	@poetry config virtualenvs.in-project true --local
+
+# initiate the venv with common packages
+	@poetry add ipykernel pytest --group test

@@ -1,0 +1,73 @@
+# reference1  https://api.stackexchange.com/docs
+# add python packages
+zhaohuiwang@WangFamily:/mnt/e/zhaohuiwang/dev/python-flask-rest-api/python-flask-rest-api$ poetry add requests flask flast_restful flask-sqlalchemy
+
+# flast_restful is optional with some nice features
+
+zhaohuiwang@WangFamily:/mnt/e/zhaohuiwang/dev/python-flask-rest-api/python-flask-rest-api/src$ touch application.py
+
+# 
+zhaohuiwang@WangFamily:/mnt/e/zhaohuiwang/dev/python-flask-rest-api/python-flask-rest-api/src/api$ export FLASK_APP=application.py
+zhaohuiwang@WangFamily:/mnt/e/zhaohuiwang/dev/python-flask-rest-api/python-flask-rest-api/src/api$ export FLASK_ENV=development
+zhaohuiwang@WangFamily:/mnt/e/zhaohuiwang/dev/python-flask-rest-api/python-flask-rest-api/src/api$ flask run
+# an URL will pop up at http://127.0.0.1:5000/
+# try to change the address to http://127.0.0.1:5000/drinks to see what it displays
+# press ctl+c to quit the server
+
+
+
+python-flask-rest-api-py3.12zhaohuiwang@WangFamily:/mnt/e/zhaohuiwang/dev/python-flask-rest-api/python-flask-rest-api/src$ python
+Python 3.12.3 (main, Nov  6 2024, 18:32:19) [GCC 13.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> from application import app
+>>> from application import db
+>>> db.create_all()
+
+# this will create a database as instance/project.db
+>>> from application import Drink
+>>> drink = Drink(name="Grape Soda", description="Taste like grapes")
+>>> drink
+Grape Soda - Taste like grapes
+# add the drink instance to project.db (name defined by app.config)
+>>> db.session.add(drink)
+>>> db.session.commit()
+>>> Drink.query.all()
+[Grape Soda - Taste like grapes]
+
+# add another one
+>>> db.session.add(Drink(name="Cherry", description="Taste like that one ice cream"))
+>>> db.session.commit()
+>>> Drink.query.all()
+[Grape Soda - Taste like grapes, Cherry - Taste like that one ice cream]
+>>> exit()
+python-flask-rest-api-py3.12zhaohuiwang@WangFamily:/mnt/e/zhaohuiwang/dev/python-flask-rest-api/python-flask-rest-api/src$ flask run
+
+
+Operate (add, delete or query) in postman, open Postman
+POST http://127.0.0.1:5000/drinks
+Boby > Raw >
+{
+   "name": "Cola",
+   "description": "delicious"
+}
+click Send to add this new record
+
+then try
+GET     http://127.0.0.1:5000/drinks        # query all 
+GET     http://127.0.0.1:5000/drinks/3      # query by id
+DELETE  http://127.0.0.1:5000/drinks/3      # delete 
+
+
+# https://github.com/gitdagray/python-flask-rest-api/blob/main/api.py
+when working on api.py and create_db.py
+first run
+python create_db.py
+to create a database.db then
+python api.py
+open postman, 
+POST     http://127.0.0.1:5000/api/users
+with name and email in the body like
+{
+   "name": "Cola",
+   "email": "delicious@gmail.com"
+}
